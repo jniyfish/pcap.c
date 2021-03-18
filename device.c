@@ -38,7 +38,6 @@ int main()
 		printf("Error finding devices : %s" , errbuf);
 		exit(1);
 	}
-	printf("Done");
 	
 	//Print the available devices
 	printf("\nAvailable Devices are :\n");
@@ -51,9 +50,15 @@ int main()
 		}
 		count++;
 	}
-	logfile=fopen("log.txt","w+");
+	logfile=fopen("log.txt","w");
 	scanf("%d", &n);
+    devname = devs[n];
 	handle = pcap_open_live(devname, 65536, 1, 0, errbuf);
+    struct bpf_program fcode;
+    const char *filter = "icmp";
+    pcap_compile(handle, &fcode, filter, 1, PCAP_NETMASK_UNKNOWN);
+    printf("Done\n");
+    pcap_setfilter(handle, &fcode);
 	pcap_loop(handle, -1, process_packet, NULL);
 	return 0;	
 }
@@ -62,53 +67,8 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
 {
 	int size = header->len;
 	fprintf(logfile , "\nPacket Strat\n");
-	PrintData(buffer,size);
+	for(int i = 0 ; i < header->caplen ; i++) {
+        fprintf(logfile, "%02x ", buffer[i]);
+    }//end for
 	fprintf(logfile , "\nPacket End\n");
-}
-
-void PrintData (const u_char * data , int Size)
-{
-	int i , j;
-	for(i=0 ; i < Size ; i++)
-	{
-		if( i!=0 && i%16==0)   //if one line of hex printing is complete...
-		{
-			fprintf(logfile , "         ");
-			for(j=i-16 ; j<i ; j++)
-			{
-				if(data[j]>=32 && data[j]<=128)
-					fprintf(logfile , "%c",(unsigned char)data[j]); //if its a number or alphabet
-				
-				else fprintf(logfile , "."); //otherwise print a dot
-			}
-			fprintf(logfile , "\n");
-		} 
-		
-		if(i%16==0) fprintf(logfile , "   ");
-			fprintf(logfile , " %02X",(unsigned int)data[i]);
-				
-		if( i==Size-1)  //print the last spaces
-		{
-			for(j=0;j<15-i%16;j++) 
-			{
-			  fprintf(logfile , "   "); //extra spaces
-			}
-			
-			fprintf(logfile , "         ");
-			
-			for(j=i-i%16 ; j<=i ; j++)
-			{
-				if(data[j]>=32 && data[j]<=128) 
-				{
-				  fprintf(logfile , "%c",(unsigned char)data[j]);
-				}
-				else 
-				{
-				  fprintf(logfile , ".");
-				}
-			}
-			
-			fprintf(logfile ,  "\n" );
-		}
-	}
 }
