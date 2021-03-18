@@ -28,7 +28,7 @@ int main()
 {
 	pcap_if_t *alldevsp , *device;
 	pcap_t *handle;
-
+	logfile=fopen("log.txt","w");
 	char errbuf[100] , *devname , devs[100][100];
 	int count = 1 , n;
 	
@@ -46,19 +46,27 @@ int main()
 		printf("%d. %s - %s - %d \n" , count , device->name , device->description, device->flags);
 		if(device->name != NULL)
 		{
-			strcpy(devs[count] , device->name);
+			strcpy(devs[count] , device->name);  //get interface name 
 		}
 		count++;
 	}
-	logfile=fopen("log.txt","w");
+
+	//Ask user which device to sniff
+	printf("Enter the number of the device you want to sniff : ");
 	scanf("%d", &n);
     devname = devs[n];
+
+    //Open the device for sniffing
 	handle = pcap_open_live(devname, 65536, 1, 0, errbuf);
     struct bpf_program fcode;
+
+    //Create filter expression
     const char *filter = "icmp";
+    //Compile filter expression
     pcap_compile(handle, &fcode, filter, 1, PCAP_NETMASK_UNKNOWN);
-    printf("Done\n");
+    //Set filter
     pcap_setfilter(handle, &fcode);
+    //Start packet sniffer
 	pcap_loop(handle, -1, process_packet, NULL);
 	return 0;	
 }
@@ -66,6 +74,7 @@ int main()
 void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char *buffer)
 {
 	int size = header->len;
+    //print byte value
 	fprintf(logfile , "\nPacket Strat\n");
 	for(int i = 0 ; i < header->caplen ; i++) {
         fprintf(logfile, "%02x ", buffer[i]);
