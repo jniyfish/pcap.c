@@ -58,9 +58,9 @@ int main()
 
     //Open the device for sniffing
 	handle = pcap_open_live(devname, 65536, 1, 0, errbuf);
-    struct bpf_program fcode;
 
     //Create filter expression
+	struct bpf_program fcode;
     const char *filter = "icmp";
     //Compile filter expression
     pcap_compile(handle, &fcode, filter, 1, PCAP_NETMASK_UNKNOWN);
@@ -75,9 +75,11 @@ void process_packet(u_char *args, const struct pcap_pkthdr *header, const u_char
 {
 	int size = header->len;
     //print byte value
-	fprintf(logfile , "\nPacket Strat\n");
+	printf("\nPacket Strat\n");
 	for(int i = 0 ; i < header->caplen ; i++) {
-        fprintf(logfile, "%02x ", buffer[i]);
-    }//end for
-	fprintf(logfile , "\nPacket End\n");
+        printf("%02x ", buffer[i]);
+		if(i%16==0 && i!=0)
+		printf("\n");
+    }
+	printf("\nPacket End\n");
 }
