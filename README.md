@@ -1,13 +1,13 @@
 # pcap.c
 
-#install pcap
+### install pcap
 
 sudo apt install libpcap-dev
 
-#install bridgr-utils
+### install bridgr-utils
 
 sudo apt install bridge-utils
 
-#compile
+### compile
 
 gcc device.c -lpcap -o device
